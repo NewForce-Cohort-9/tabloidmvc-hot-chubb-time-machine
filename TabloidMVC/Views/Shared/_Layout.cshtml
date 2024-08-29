@@ -31,6 +31,15 @@
                             <li class="nav-item ">
                                 <a class="nav-link  rounded " asp-area="" asp-controller="Account" asp-action="Logout">LOGOUT</a>
                             </li>
+                           
+
+                            @if (User.IsInRole("Admin"))
+                            {
+                            <li class="nav-item ">
+                                <a class="nav-link  rounded " asp-area="" asp-controller="UserProfile" asp-action="Index">USER PROFILES</a>
+                            </li>
+                            }
+
                         }
                         else
                         {
