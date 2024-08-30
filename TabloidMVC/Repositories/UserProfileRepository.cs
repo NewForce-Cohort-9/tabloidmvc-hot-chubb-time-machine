@@ -19,7 +19,7 @@ namespace TabloidMVC.Repositories
                 {
                     cmd.CommandText = @"SELECT up.*, ut.[Name] AS UserTypeName 
                                         FROM UserProfile up
-                                        JOIN UserType ut ON ut.Id = up.UserTypeId;";
+                                        JOIN UserType ut ON ut.Id = up.UserTypeId";
 
                     var reader = cmd.ExecuteReader();
 
@@ -36,6 +36,38 @@ namespace TabloidMVC.Repositories
             }
 
         }
+
+        public UserProfile GetById(int id)
+        {
+            using (var conn = Connection)
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+
+                    cmd.CommandText = @"SELECT up.*, ut.[Name] AS UserTypeName 
+                                        FROM UserProfile up
+                                        JOIN UserType ut ON ut.Id = up.UserTypeId
+                                        WHERE up.Id = @id";
+
+                    cmd.Parameters.AddWithValue("@id", id);
+
+                    var reader = cmd.ExecuteReader();
+
+                    UserProfile profile = null;
+
+                    if (reader.Read())
+                    {
+                        profile = NewUserProfileFromReader(reader);
+                    }
+
+                    reader.Close();
+
+                    return profile;
+                }
+            }
+        }
+
         public UserProfile GetByEmail(string email)
         {
             using (var conn = Connection)
