@@ -1,10 +1,9 @@
 ﻿using TabloidMVC.Models;
 
-namespace TabloidCLI
+namespace TabloidMVC.Repositories
 {
     public interface ITagRepository
     {
-        Tag Get(int id);
         List<Tag> GetAll();
     }
 }

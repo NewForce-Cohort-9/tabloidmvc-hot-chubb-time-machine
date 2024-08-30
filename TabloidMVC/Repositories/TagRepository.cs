@@ -1,33 +1,31 @@
-﻿using Microsoft.Data.SqlClient;
-using NuGet.Protocol.Plugins;
+﻿using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 using TabloidMVC.Models;
-using TabloidMVC.Utils;
 
-namespace TabloidCLI
+namespace TabloidMVC.Repositories
 {
-    public class TagRepository : DatabaseConnector, IRepository<Tag>, ITagRepository
+    public class TagRepository : BaseRepository, ITagRepository
     {
-        public TagRepository(string connectionString) : base(connectionString) { }
-
+        public TagRepository(IConfiguration config) : base(config) { }
         public List<Tag> GetAll()
         {
-            using (SqlConnection conn = Connection)
+            using (var conn = Connection)
             {
                 conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
+                using (var cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT id, Name FROM Tag";
-                    List<Tag> tags = new List<Tag>();
+                    cmd.CommandText = "SELECT id, name FROM Tag";
+                    var reader = cmd.ExecuteReader();
 
-                    SqlDataReader reader = cmd.ExecuteReader();
+                    var tags = new List<Tag>();
+
                     while (reader.Read())
                     {
-                        Tag tag = new Tag()
+                        tags.Add(new Tag()
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            Name = reader.GetString(reader.GetOrdinal("Name")),
-                        };
-                        tags.Add(tag);
+                            Name = reader.GetString(reader.GetOrdinal("name")),
+                        });
                     }
 
                     reader.Close();
@@ -36,38 +34,5 @@ namespace TabloidCLI
                 }
             }
         }
-
-        public Tag Get(int id)
-        {
-            using (SqlConnection conn = Connection)
-            {
-                conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = "SELECT Name FROM Tag WHERE Id = @id";
-                    cmd.Parameters.AddWithValue("@id", id);
-                    SqlDataReader reader = cmd.ExecuteReader();
-
-                    Tag tag = null;
-
-                    if (reader.Read())
-                    {
-                        tag = new Tag
-                        {
-                            Id = id,
-                            Name = reader.GetString(reader.GetOrdinal("Name"))
-                        };
-                    }
-
-                    reader.Close();
-
-                    return tag;
-                }
-            }
-        }
-
-
-
-
     }
 }
