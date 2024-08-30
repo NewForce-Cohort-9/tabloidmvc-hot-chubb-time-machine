@@ -27,9 +27,14 @@ namespace TabloidMVC.Controllers
         }
 
         // GET: UserProfileController/Details/5
+        [Authorize] //TODO - this route needs admin only auth
         public ActionResult Details(int id)
         {
-            return View();
+            var profile =_profileRepository.GetById(id);
+
+            if (profile == null) return NotFound(); 
+
+            return View(profile);
         }
 
         // GET: UserProfileController/Create
