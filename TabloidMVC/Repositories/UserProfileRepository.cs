@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using TabloidMVC.Models;
 using TabloidMVC.Utils;
 
@@ -8,6 +9,33 @@ namespace TabloidMVC.Repositories
     {
         public UserProfileRepository(IConfiguration config) : base(config) { }
 
+
+        public List<UserProfile> GetAll()
+        {
+            using (var conn = Connection)
+            {
+                conn.Open();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT up.*, ut.[Name] AS UserTypeName 
+                                        FROM UserProfile up
+                                        JOIN UserType ut ON ut.Id = up.UserTypeId;";
+
+                    var reader = cmd.ExecuteReader();
+
+                    var profiles = new List<UserProfile>();
+
+                    while (reader.Read())
+                    {
+                        profiles.Add(NewUserProfileFromReader(reader));
+                    }
+
+                    reader.Close();
+                    return profiles;
+                }
+            }
+
+        }
         public UserProfile GetByEmail(string email)
         {
             using (var conn = Connection)
@@ -29,22 +57,7 @@ namespace TabloidMVC.Repositories
 
                     if (reader.Read())
                     {
-                        userProfile = new UserProfile()
-                        {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            Email = reader.GetString(reader.GetOrdinal("Email")),
-                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
-                            DisplayName = reader.GetString(reader.GetOrdinal("DisplayName")),
-                            CreateDateTime = reader.GetDateTime(reader.GetOrdinal("CreateDateTime")),
-                            ImageLocation = DbUtils.GetNullableString(reader, "ImageLocation"),
-                            UserTypeId = reader.GetInt32(reader.GetOrdinal("UserTypeId")),
-                            UserType = new UserType()
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("UserTypeId")),
-                                Name = reader.GetString(reader.GetOrdinal("UserTypeName"))
-                            },
-                        };
+                        userProfile = NewUserProfileFromReader(reader);
                     }
 
                     reader.Close();
@@ -52,6 +65,26 @@ namespace TabloidMVC.Repositories
                     return userProfile;
                 }
             }
+        }
+
+        private static UserProfile NewUserProfileFromReader(SqlDataReader reader)
+        {
+            return new UserProfile()
+            {
+                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                Email = reader.GetString(reader.GetOrdinal("Email")),
+                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                DisplayName = reader.GetString(reader.GetOrdinal("DisplayName")),
+                CreateDateTime = reader.GetDateTime(reader.GetOrdinal("CreateDateTime")),
+                ImageLocation = DbUtils.GetNullableString(reader, "ImageLocation"),
+                UserTypeId = reader.GetInt32(reader.GetOrdinal("UserTypeId")),
+                UserType = new UserType()
+                {
+                    Id = reader.GetInt32(reader.GetOrdinal("UserTypeId")),
+                    Name = reader.GetString(reader.GetOrdinal("UserTypeName"))
+                },
+            };
         }
     }
 }
