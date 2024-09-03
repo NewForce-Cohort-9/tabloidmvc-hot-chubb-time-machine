@@ -14,7 +14,7 @@ namespace TabloidMVC.Repositories
                 conn.Open();
                 using (var cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT * from Tag";
+                    cmd.CommandText = "SELECT * from Tag ORDER BY Name";
                     var reader = cmd.ExecuteReader();
 
                     var tags = new List<Tag>();
